@@ -71,7 +71,7 @@ jobs:
       
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
         run: |
-          case "${{ github.event.inputs.REPO_MANIFEST }}" in
+          case "${ github.event.inputs.REPO_MANIFEST }" in
             oneplus_ace5_pro)
               echo "REPO_MANIFEST=JiuGeFaCai_oneplus_ace5_pro_v" >> $GITHUB_ENV
               echo "DEVICES_NAME=oneplus_ace5_pro" >> $GITHUB_ENV
@@ -85,7 +85,7 @@ jobs:
               echo "DEVICES_NAME=${{ github.event.inputs.REPO_MANIFEST }}" >> $GITHUB_ENV
               ;;
           esac
-          case "${{ github.event.inputs.REPO_MANIFEST }}" in
+          case "${ github.event.inputs.REPO_MANIFEST }" in
             oneplus_13 | oneplus_ace5_pro)
               echo 'DEFAULT_SUFFIX=-android15-8-g4dc61d72e02f-abogki415959920-4k' >> $GITHUB_ENV
               ;;
@@ -108,11 +108,11 @@ jobs:
               echo 'DEFAULT_SUFFIX=-android15-8-g29d86c5fc9dd-abogki428889875-4k' >> $GITHUB_ENV
               ;;
           esac
-          if [ "${{ github.event.inputs.keep_original_settings }}" = "false" ] && [ -n "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
+          if [ "${ github.event.inputs.keep_original_settings }" = "false" ] && [ -n "${{ github.event.inputs.custom_kernel_suffix }}" ]; then
             echo "使用自定义构建时间: $CUSTOM_TIME"
             echo "KERNEL_TIME=$CUSTOM_TIME" >> $GITHUB_ENV
           else
-            case "${{ github.event.inputs.REPO_MANIFEST }}" in
+            case "${ github.event.inputs.REPO_MANIFEST }" in
               oneplus_13 | oneplus_ace5_pro)
                 echo 'KERNEL_TIME=Mon May 12 09:09:59 UTC 2025' >> $GITHUB_ENV
                 ;;
@@ -410,7 +410,7 @@ jobs:
     
       - name: ⚙️ Set KPM status (设置KPM状态)
         run: |
-          if [ "${{ inputs.enable_kpm_patch }}" = "true" ]; then
+          if [ "${ inputs.enable_kpm_patch }" = "true" ]; then
             echo "KPM_STATUS=KPM" >> $GITHUB_ENV
           else
             echo "KPM_STATUS=NoKPM" >> $GITHUB_ENV
