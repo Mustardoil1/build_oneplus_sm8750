@@ -408,6 +408,15 @@ jobs:
             exit 1
           fi
     
+      - name: ⚙️ Set KPM status (设置KPM状态)
+        run: |
+          if [ "${{ inputs.enable_kpm_patch }}" = "true" ]; then
+            echo "KPM_STATUS=KPM" >> $GITHUB_ENV
+          else
+            echo "KPM_STATUS=NoKPM" >> $GITHUB_ENV
+          fi
+          echo "KPM状态: $KPM_STATUS"
+      
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
           cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
