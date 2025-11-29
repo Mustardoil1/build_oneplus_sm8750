@@ -53,6 +53,12 @@ on:
         default: true
         type: boolean
 
+      enable_kpm_patch:
+        description: "是否修补KPM（勾选则生成带KPM的内核）"
+        required: false
+        default: true
+        type: boolean
+      
       enable_feature_b:
          description: "选择网络调度"
          required: false
@@ -418,6 +424,13 @@ jobs:
             fi
           fi
 
+      - name: 🔧 Enable KPM config (启用KPM配置)
+        if: ${{ inputs.enable_kpm_patch }}
+        run: |
+          cd kernel_workspace/kernel_platform/common
+          echo "CONFIG_KPM=y" >> arch/arm64/configs/gki_defconfig
+          echo "✅ KPM配置已添加到 gki_defconfig"
+      
       - name: 🔨 Build Kernel (构建内核)
         run: |
           WORKDIR="$(pwd)"
@@ -477,6 +490,37 @@ jobs:
           LD_PRELOAD=$PRELOAD_LIBS stat ./Makefile
           echo "ccache状态："
           ccache -s
+      
+      - name: 🛠 Apply KPM Patch (应用KPM修补)
+        if: ${{ inputs.enable_kpm_patch }}
+        run: |
+          set -e  # 在任何命令失败时退出
+          echo "开始KPM修补..."
+          cd "${GITHUB_WORKSPACE}/kernel_workspace/kernel_platform/common/out/arch/arm64/boot" || exit 1
+          echo "下载patch_linux工具..."
+          curl -f -LO https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/0.12.0/patch_linux || { echo "❌ 下载patch_linux失败"; exit 1; }
+          chmod +x patch_linux
+          echo "运行patch_linux进行修补..."
+          ./patch_linux || { echo "❌ patch_linux执行失败"; exit 1; }
+
+          if [ -f "oImage" ]; then
+            echo "✅ KPM修补成功，替换原始Image"
+            rm -f Image
+            mv oImage Image
+          else
+            echo "❌ 错误：KPM修补未生成oImage文件，修补失败"
+            exit 1
+          fi
+    
+      - name: ⚙️ Set KPM status (设置KPM状态)
+        run: |
+          if [ "${{ inputs.enable_kpm_patch }}" = "true" ]; then
+            echo "KPM_STATUS=KPM" >> $GITHUB_ENV
+          else
+            echo "KPM_STATUS=NoKPM" >> $GITHUB_ENV
+          fi
+          echo "KPM状态: $KPM_STATUS"
+      
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
           cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
@@ -487,5 +531,5 @@ jobs:
       - name: 📤 Upload AnyKernel3 (上传 Anykernel3)
         uses: actions/upload-artifact@v4
         with:
-         name: AK3_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
+         name: AK3_${{ env.KPM_STATUS }}_${{ env.KSUVER }}_${{ env.DEVICES_NAME }}_SuKiSU
          path: ./AnyKernel3/*
