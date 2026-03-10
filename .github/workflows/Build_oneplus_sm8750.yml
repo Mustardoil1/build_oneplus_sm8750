@@ -198,19 +198,17 @@ jobs:
       - name: 🛠 Set ccache DIR(配置ccache目录)
         run: |
           echo "CCACHE_DIR=$HOME/.ccache_${{ env.KSU_TYPE }}_${{ env.DEVICES_NAME }}" >> $GITHUB_ENV
-          echo "CCACHE_MAXSIZE=3G" >> $GITHUB_ENV
+          echo "CCACHE_MAXSIZE=10G" >> $GITHUB_ENV
           echo "当前磁盘空间："
           df -h
           echo "当前构建内核机型：${{ env.DEVICES_NAME }}"
 
       - name: 📥 Restore ccache (载入当前机型的ccache缓存)
-        uses: actions/cache@v4
-        id: ccache-restore
+        uses: actions/cache/restore@v4
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ runner.os }}-main
+          key: ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-latest
           restore-keys: |
-            ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ runner.os }}-
             ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-
       
       - name: 📥 Init ccache (初始化配置ccache)
@@ -425,7 +423,11 @@ jobs:
               patch -p1 -F 3 < hmbird_patch.patch
               echo "OGKI转换GKI_patch完成"
           fi
-
+          
+      - name: 📥 Start build timer (构建计时开始)
+        run: 
+          echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+          
       - name: 🔨 Build Kernel (构建内核)
         run: |
           WORKDIR="$(pwd)"
@@ -485,6 +487,35 @@ jobs:
           LD_PRELOAD=$PRELOAD_LIBS stat ./Makefile
           echo "ccache状态："
           ccache -s
+
+      - name: 🕒 Calculate build time (计算构建时间)
+        run: |
+          END=$(date +%s)
+          TIME=$((END - BUILD_START))
+          echo "BUILD_TIME=$TIME" >> $GITHUB_ENV
+          echo "Build time: $TIME seconds"
+
+      - name: 📥 Save ccache if slow build (构建时间较长则保存ccache)
+        if: env.BUILD_TIME > 480
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ github.run_id }}
+
+      - name: 🧹 Clean old ccache (清理旧缓存)
+        if: env.BUILD_TIME > 480
+        run: |
+          echo "构建时间超过8分钟，已保存ccache缓存"
+          echo "正在清理旧缓存..."
+          gh cache list --limit 100 | grep "ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}" | while read id key size created; do
+            if [[ "$key" != "ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ github.run_id }}" ]]; then
+              echo "Deleting cache $key ($id)"
+              gh cache delete $id
+            fi
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
           cp "${GITHUB_WORKSPACE}/.github/workflows/Bin/main.bin" ./
