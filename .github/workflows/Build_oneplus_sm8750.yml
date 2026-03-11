@@ -507,12 +507,14 @@ jobs:
         run: |
           echo "构建时间超过8分钟，已保存ccache缓存"
           echo "正在清理旧缓存..."
-          gh cache list --limit 100 | grep "ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}" | while read id key size created; do
-            if [[ "$key" != "ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ github.run_id }}" ]]; then
-              echo "Deleting cache $key ($id)"
-              gh cache delete $id
-            fi
-          done
+          PREFIX="ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}"
+          CURRENT_KEY="$PREFIX-${{ github.run_id }}"
+          gh cache list --limit 100 --json id,key \
+            | jq -r ".[] | select(.key | startswith(\"$PREFIX\") and .key != \"$CURRENT_KEY\") | .id" \
+            | while read cache_id; do
+                echo "Deleting cache ID $cache_id"
+                gh cache delete "$cache_id"
+              done
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
