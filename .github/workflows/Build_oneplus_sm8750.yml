@@ -72,7 +72,7 @@ jobs:
       ENABLE_SCX:       ${{ github.event.inputs.enable_scx }}
       ENABLE_BBG:       ${{ github.event.inputs.enable_bbg }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: ⚙️ Set REPO_MANIFEST (设置对应机型配置文件)
