@@ -504,19 +504,53 @@ jobs:
 
       - name: 🧹 Clean old ccache (清理旧缓存)
         if: env.BUILD_TIME > 480
-        run: |
-          echo "构建时间超过8分钟，已保存ccache缓存"
-          echo "正在清理旧缓存..."
-          PREFIX="ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}"
-          CURRENT_KEY="$PREFIX-${{ github.run_id }}"
-          gh cache list --limit 100 --json id,key \
-            | jq -r ".[] | select(.key | startswith(\"$PREFIX\") and .key != \"$CURRENT_KEY\") | .id" \
-            | while read cache_id; do
-                echo "Deleting cache ID $cache_id"
-                gh cache delete "$cache_id"
-              done
+        uses: actions/github-script@v7
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PREFIX: ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}
+          CURRENT_KEY: ccache-${{ env.KSU_TYPE }}-${{ env.DEVICES_NAME }}-${{ github.run_id }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const prefix = process.env.PREFIX;
+            const currentKey = process.env.CURRENT_KEY;
+            let page = 1;
+            let deleted = 0;
+
+            core.info('构建时间超过8分钟，已保存ccache缓存');
+            core.info(`正在清理旧缓存，匹配前缀: ${prefix}`);
+
+            while (true) {
+              const response = await github.rest.actions.getActionsCacheList({
+                owner,
+                repo,
+                per_page: 100,
+                page,
+              });
+
+              const caches = response.data.actions_caches || [];
+              if (caches.length === 0) {
+                break;
+              }
+
+              for (const cache of caches) {
+                if (cache.key.startsWith(prefix) && cache.key !== currentKey) {
+                  core.info(`Deleting cache: ${cache.key} (ID: ${cache.id})`);
+                  await github.rest.actions.deleteActionsCacheById({
+                    owner,
+                    repo,
+                    cache_id: cache.id,
+                  });
+                  deleted++;
+                }
+              }
+
+              if (caches.length < 100) {
+                break;
+              }
+              page++;
+            }
+
+            core.info(`旧缓存清理完成，共删除 ${deleted} 个缓存`);
       
       - name: 📦 Make AnyKernel3 (创建Anykernel3)
         run: |
