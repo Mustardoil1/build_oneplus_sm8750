@@ -1,82 +1,210 @@
+# OnePlus/Realme SM8750 内核构建项目
+
 **`简体中文`** | [English](README-en.md)<br>
 
-[![GitHub](https://img.shields.io/badge/-GitHub|@showdo-181717?logo=github&logoColor=white&style=flat-square)](https://github.com/showdo/build_oneplus_sm8750)
+[![GitHub](https://img.shields.io/badge/-GitHub|@showdo-181717?logo=github&logoColor=white&style=flat-square)](https://github.com/showdo/Build_Oneplus_Realme_Action)
 [![Telegram](https://img.shields.io/badge/Telegram-频道-blue.svg?logo=telegram)](https://t.me/qdykernel)
-[![酷安|主页](https://img.shields.io/badge/酷安%7C主页-3DDC84?style=flat-square&logo=android&logoColor=white)](http://www.coolapk.com/u/1624571)
-[![一加内核开源地址](https://img.shields.io/badge/一加内核开源清单-EB0029?logo=oneplus&logoColor=white&style=flat-square)](https://github.com/OnePlusOSS/kernel_manifest)
-<br><b>本项目构建支持来自</b>[![GitHub](https://img.shields.io/badge/-GitHub|@HanKuCha-181717?logo=github&logoColor=white&style=flat-square)](https://github.com/HanKuCha/oneplus13_a5p_sukisu)<br>
-# 本仓库提供两种编译方式(请使用workflow云工作流编译)
-## ✨①Workflow云编译脚本使用方法
-#### 请使用VPN打开以下链接：
-```bash
-https://t.me/qdyKernel/405
-```
-## 🎁②本地脚本使用方法(长期未维护请勿使用本地脚本)
-> ⚠️ 注意：如果想使用自己fork的仓库进行编译，fork时如更改了仓库名，请将下方“使用方法”中的 `build_oneplus_sm8750` 改成你修改后的项目名并将下方链接中的 `showdo` 改成你的 GitHub 用户名。  
-> 比如你的用户名是 `abcd`，仓库名为`123456`则命令为：  
-> `git clone https://github.com/abcd/123456.git`
+[![酷安|主页](https://img.shields.io/badge/酷安|主页-3DDC84?style=flat-square&logo=android&logoColor=white)](http://www.coolapk.com/u/1624571)
+[![Workflow Status](https://img.shields.io/github/actions/workflow/status/showdo/Build_Oneplus_Realme_Action/Build_oneplus_sm8750.yml?label=Build&logo=github-actions&style=flat-square)](https://github.com/showdo/Build_Oneplus_Realme_Action/actions)
+<br>
+
 ---
+
+## 📖 项目简介
+
+本项目提供基于 **GitHub Actions** 的自动化内核编译工作流，支持 **OnePlus** 和 **Realme** 多款搭载 **SM8750** 平台的设备。通过高度集成的脚本，实现一键编译包含 **(Re)SukiSU**、**SUSFS**、**风驰调度** 等功能的 OKI 内核。
+
+### ✨ 主要特性
+
+- 🚀 **全自动化编译** - 基于 GitHub Actions，无需本地环境
+- 🔧 **多种 KSU 支持** - ReSukiSU / SukiSU-Ultra 可选
+- 📱 **多机型适配** - 支持 10 款 OnePlus/Realme 设备
+- ⚡ **性能优化** - 集成完美风驰调度补
+- 💾 **ccache 缓存** - 智能缓存管理，首次编译使用公共缓存提速 50%，二次编译提速 80%
+- 📦 **开箱即用** - 自动生成 AnyKernel3 刷入包
+
+---
+
+## 📱 支持的设备
+
+| 序号 | 设备名称 | 代号 | 平台 |
+|------|---------|------|------|
+| 1 | 一加 13 | `oneplus_13` | SM8750 |
+| 2 | 一加 Ace 5 Pro | `oneplus_ace5_pro` | SM8750 |
+| 3 | 一加 Ace 6 | `oneplus_ace_6` | SM8750 |
+| 4 | 一加 13T | `oneplus_13t` | SM8750 |
+| 5 | 一加 Pad 2 Pro | `oneplus_pad_2_pro` | SM8750 |
+| 6 | 一加 Ace5 至尊版 | `oneplus_ace5_ultra` | MT6991 |
+| 7 | 真我 GT 7 | `realme_GT7` | MT6991 |
+| 8 | 真我 GT 7 Pro | `realme_GT7pro` | SM8750 |
+| 9 | 真我 GT 7 Pro 竞速 | `realme_GT7pro_Speed` | SM8750 |
+| 10 | 真我 GT 8 | `realme_GT8` | SM8750 |
+
+---
+
+## 🎯 快速开始
+
+### 方式一：GitHub Actions 云编译（推荐）
+
+#### 步骤 1. Fork 本仓库
+
+点击仓库右上角的 **Fork** 按钮，将本仓库复制到你自己的 GitHub 账户。
+
+#### 步骤 2. 运行工作流
+
+1. 进入你 Fork 的仓库
+2. 点击 **Actions** 标签页
+3. 选择 **`Build_oneplus_sm8750`** 工作流
+4. 点击 **Run workflow** 按钮
+5. 填写编译参数
+6. 等待编译完成（首次构建约12分钟）
+7. 在 **Artifacts** 中下载编译产物
+---
+
+### 方式二：本地 WSL2 编译
+
+> ⚠️ **注意**: 本地脚本需要一定的 Linux 使用经验，推荐新手使用 GitHub Actions 云编译。
+
+#### 环境要求
+
+- **WSL2**: Ubuntu 20.04 或更高版本
+- **磁盘空间**: 至少 50GB（推荐 80GB+）
+- **内存**: 最低 8GB（推荐 16GB+）
+- **网络**: 能稳定访问 GitHub
+
+#### 编译步骤
+
 ```bash
+# 1. 克隆仓库
 git clone https://github.com/showdo/Build_Oneplus_Realme_Action.git
-```
-```bash
 cd Build_Oneplus_Realme_Action
+
+# 2. 添加执行权限
+chmod +x Build_sm8750_local.sh
+
+# 3. 运行脚本
+./Build_sm8750_local.sh
 ```
-```bash
-chmod +x Build_sm8750.sh
-```
-```bash
-./Build_sm8750.sh
-```
 
----
+#### WSL2 磁盘迁移教程（可选）
 
-## Windows推荐使用WSL运行  
-这里提供WSL迁移到其他盘（如E盘）的方法，避免占用C盘空间。
-
-### WSL2迁移至其他目录步骤
-
-1. 以管理员身份打开 PowerShell，查看当前WSL版本：
+如果 C 盘空间不足，可将 WSL2 迁移到其他盘：
 
 ```powershell
+# 以管理员身份运行 PowerShell
+
+# 1. 查看 WSL 版本
 wsl -l -v
-```
 
-2. 停止所有正在运行的WSL实例：
-
-```powershell
+# 2. 停止 WSL
 wsl --shutdown
-```
 
-3. 导出你想迁移的Linux发行版（例如Ubuntu-20.04）：
-
-```powershell
+# 3. 导出 Ubuntu（替换为你的发行版名称）
 wsl --export Ubuntu-20.04 E:/ubuntu.tar
-```
 
-4. 注销原有Linux发行版：
-
-```powershell
+# 4. 注销原发行版
 wsl --unregister Ubuntu-20.04
-```
 
-5. 将导出的发行版导入到新的目录：
-
-```powershell
+# 5. 导入到新位置
 wsl --import Ubuntu-20.04 E:\ubuntu\ E:\ubuntu.tar --version 2
-```
 
-6. 设置默认用户：
-
-```powershell
-ubuntu2004.exe config --default-user <username>
-```
-
->请将 `<username>` 替换为你WSL安装时设置的用户名。  
->例如我的用户名是 `qiudaoyu`，则命令为：
-```powershell
-ubuntu2004.exe config --default-user qiudaoyu
+# 6. 设置默认用户
+ubuntu2004.exe config --default-user <your_username>
 ```
 
 ---
 
+## 🔧 高级功能
+
+
+#### 使用公共缓存
+
+项目会自动从 [Public_Ccache_SM8750](https://github.com/showdo/Build_Oneplus_Realme_Action/releases/tag/Public_Ccache_SM8750) 下载公共缓存，首次编译也能享受加速。
+
+#### 清理旧缓存
+
+当构建时间超过 8 分钟时，会自动清理旧的 ccache 缓存，避免占用过多 GitHub 存储空间。
+
+---
+
+### 日志分析
+
+#### 查看编译日志
+
+1. 进入 **Actions** 页面
+2. 点击对应的 workflow 运行记录
+3. 展开各个步骤查看详细输出
+4. 重点关注报错步骤
+
+#### 关键日志标记
+
+```
+[INFO]    - 一般信息
+[SUCCESS] - 成功完成
+[ERROR]   - 错误（需立即处理）
+```
+
+---
+
+## 🔗 相关资源
+
+### 相关项目
+
+- [OnePlus 内核开源](https://github.com/OnePlusOSS/kernel_manifest)
+- [SukiSU-Ultra 项目](https://github.com/SukiSU-Ultra/SukiSU-Ultra)
+- [ReSukiSU 项目](https://github.com/ReSukiSU/ReSukiSU)
+- [风驰调度补丁](https://github.com/Numbersf/SCHED_PATCH)
+
+### 社区支持
+
+- **Telegram 频道**: [@qdykernel](https://t.me/qdykernel)
+- **酷安主页**: [@showdo](http://www.coolapk.com/u/1624571)
+- **GitHub Issues**: [提交问题](https://github.com/showdo/Build_Oneplus_Realme_Action/issues)
+
+### 感谢
+
+本项目构建支持来自：
+- [HanKuCha](https://github.com/HanKuCha/oneplus13_a5p_sukisu)
+- [cctv18](https://github.com/cctv18) - 工具链和补丁支持
+
+---
+
+## 📜 许可证
+
+本项目采用 **GPL-3.0** 许可证。
+
+```
+Copyright (C) 2024 showdo
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+```
+
+---
+
+## 📈 项目统计
+
+[![Star History Chart](https://api.star-history.com/svg?repos=showdo/Build_Oneplus_Realme_Action&type=Date)](https://star-history.com/#showdo/Build_Oneplus_Realme_Action&Date)
+
+---
+
+## 📞 联系方式
+
+如有问题或建议，请通过以下方式联系：
+
+- **Telegram**: [@qdykernel](https://t.me/qdykernel)
+- **GitHub Issues**: [新建 Issue](https://github.com/showdo/Build_Oneplus_Realme_Action/issues)
+- **酷安**: 私信 [@Q1udaoyu](http://www.coolapk.com/u/1624571)
+
+---
+**维护状态**: 🟢 活跃维护中
